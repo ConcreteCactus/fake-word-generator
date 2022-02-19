@@ -3,6 +3,8 @@ module Separator
     , vowelsEn
     , normalizeText
     , separate
+    , separateHu
+    , separateEn
     ) where
 
 import Data.Char (toLower, isLetter)
