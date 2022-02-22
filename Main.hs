@@ -2,7 +2,7 @@ module Main where
 
 import Separator (normalizeText, vowelsHu)
 import Generator
-import System.Random (getStdGen)
+import System.Random (getStdGen, RandomGen, uniformR)
 import Data.Maybe (fromMaybe)
 import Text.Read (readMaybe)
 import Data.Char (isSpace)
@@ -18,9 +18,9 @@ helpText progName
     ++ "\t-f TEXTFILE\t\tSet the text file used to generate the words\n"
     ++ "\n\n"
 
-type Options = (Bool, Int, Int, Int, String)
+type Options = (Bool, Int, Int, Int, String, String)
 
-defaultOptions = (False, 10, 3, 4, "testText.txt")
+defaultOptions = (False, 10, 3, 4, "testText.txt", "aeiou")
 
 parseFlags :: [String] -> Either String Options
 parseFlags args = helper args defaultOptions
@@ -53,17 +53,17 @@ parseFlags args = helper args defaultOptions
                 , ('f', setFile)
                 ]
     printHelp :: Options -> String -> Either String Options
-    printHelp (_, c, rl, ru, f) _ = Right (True, c, rl, ru, f)
+    printHelp (_, c, rl, ru, f, v) _ = Right (True, c, rl, ru, f, v)
 
     setCount :: Options -> String -> Either String Options
-    setCount (h, _, rl, ru, f) arg = case readMaybe arg of
+    setCount (h, _, rl, ru, f, v) arg = case readMaybe arg of
                                         Nothing -> Left (arg ++ " is not a valid number.")
-                                        Just c -> Right (h, c, rl, ru, f)
+                                        Just c -> Right (h, c, rl, ru, f, v)
 
     setRange :: Options -> String -> Either String Options
-    setRange (h, c, _, _, f) arg = case parsed of
+    setRange (h, c, _, _, f, v) arg = case parsed of
                                     Nothing -> Left (arg ++ " is not a valid range.")
-                                    Just (upper, lower) -> Right (h, c, lower, upper, f)
+                                    Just (upper, lower) -> Right (h, c, lower, upper, f, v)
       where
         parsed = do
             let (upperS, lowerS) = break (=='-') arg
@@ -72,15 +72,31 @@ parseFlags args = helper args defaultOptions
             return (upper, lower)
 
     setFile :: Options -> String -> Either String Options
-    setFile (h, c, rl, ru, _) arg = Right (h, c, rl, ru, arg)
+    setFile (h, c, rl, ru, _, v) arg = Right (h, c, rl, ru, arg, v)
+
+    setVowels :: Options -> String -> Either String Options
+    setVowels (h, c, rl, ru, f, _) arg = Right (h, c, rl, ru, f, arg)
 
 runWithOpts :: Options -> IO ()
-runWithOpts opts = do
-    text <- fmap (map normalizeText . words) $ readFile "testText.txt"
-    gen1 <- getStdGen
-    let vowels = vowelsHu
-        language = createLanguage vowelsHu text
-    putStrLn $ fst $ generateOne language 3 gen1
+runWithOpts (h, c, rl, ru, f, v)
+    = if h then do
+        progName <- getProgName
+        putStrLn (helpText progName)
+    else do
+        text <- fmap (map normalizeText . words) $ readFile f
+        gen1 <- getStdGen
+        let vowels = vowelsHu
+            language = createLanguage v text
+        printWords language rl ru c gen1
+        return ()
+  where
+    printWords :: RandomGen g => Language -> Int -> Int -> Int -> g -> IO g
+    printWords _    _  _  0 gen  = return gen
+    printWords lang rl ru c gen1 = do
+        let (syllCount, gen2) = uniformR (rl, ru) gen1
+            (word, gen3)  = generateOne lang syllCount gen2
+        putStrLn word
+        printWords lang rl ru (c-1) gen3
 
 main = do
     args <- getArgs
