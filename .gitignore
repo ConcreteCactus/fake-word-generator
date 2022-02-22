@@ -3,3 +3,6 @@ stack.yaml.lock
 
 *.hi
 *.o
+
+Main
+testText.txt
