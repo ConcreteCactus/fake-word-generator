@@ -1,4 +1,9 @@
-module Generator where
+module Generator
+    ( Language
+    , createLanguage
+    , generateOne
+    , justOrError
+    ) where
 
 import Separator (separate)
 import System.Random
