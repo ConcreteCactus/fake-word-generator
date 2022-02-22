@@ -22,6 +22,7 @@ normalizeText :: String -> String
 normalizeText = filter isLetter . map toLower
 
 separate :: String -> String -> [String]
+separate _ [] = []
 separate vowels word
     | isVowel vowels (head word) = tail $ groupVCV $ groupVC word
     | otherwise                  = groupVCV $ groupVC word
