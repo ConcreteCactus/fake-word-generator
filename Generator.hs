@@ -5,8 +5,12 @@ module Generator
     , justOrError
     ) where
 
+
 import Separator (separate)
 import System.Random
+import Data.Binary
+import GHC.Generics
+
 
 type VowelMap = [(Char, [String])]
 type ErrorMessage = String
@@ -16,7 +20,6 @@ data Language = Lang { startSylls :: [String]
                      , midSylls :: VowelMap
                      , vowels :: String
                      }
-
 
 createLanguage :: String -> [String] -> Language
 createLanguage vowels words = Lang startSylls endSylls midSylls vowels

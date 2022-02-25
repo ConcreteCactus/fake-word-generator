@@ -5,4 +5,4 @@ stack.yaml.lock
 *.o
 
 Main
-testText.txt
+*.txt
