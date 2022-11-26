@@ -50,4 +50,4 @@ separateHu :: String -> [String]
 separateHu = separate vowelsHu
 
 separateEn :: String -> [String]
-separateEn = separate vowelsHu
+separateEn = separate vowelsEn
